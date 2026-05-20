@@ -3,19 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>امتحان الكيمياء العضوية - 12 متقدم</title>
+    <title>امتحان الكيمياء العضوية الشامل - 12 متقدم</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; line-height: 1.6; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .question { margin-bottom: 25px; padding: 15px; border-right: 5px solid #3498db; background: #fafafa; }
-        .options { list-style: none; padding: 0; }
-        .options li { margin: 10px 0; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; transition: 0.3s; }
-        .options li:hover { background: #eef7ff; border-color: #3498db; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; line-height: 1.6; color: #2c3e50; }
+        .container { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 15px; margin-bottom: 10px; }
+        .sub-title { text-align: center; color: #7f8c8d; margin-bottom: 30px; font-size: 1.1em; }
+        .question { margin-bottom: 30px; padding: 20px; border-right: 6px solid #3498db; background: #style; background-color: #fdfdfd; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .question-title { font-size: 1.1em; color: #2c3e50; margin-bottom: 15px; display: block; }
+        .options { list-style: none; padding: 0; margin: 0; }
+        .options li { margin: 12px 0; padding: 12px 15px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; font-size: 0.95em; }
+        .options li:hover { background: #eef7ff; border-color: #3498db; padding-right: 20px; }
         .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
         .wrong { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
-        .citation { font-size: 0.8em; color: #7f8c8d; margin-top: 5px; display: block; }
-        #result-box { text-align: center; font-size: 1.2em; font-weight: bold; margin-top: 20px; color: #2c3e50; }
+        .missed { border-color: #28a745 !important; background-color: #f3fbf5 !important; color: #28a745; font-weight: 500; }
+        #result-box { text-align: center; font-size: 1.4em; font-weight: bold; margin-top: 30px; padding: 20px; background: #ecf0f1; border-radius: 8px; border-top: 4px solid #2c3e50; display: none; }
     </style>
 </head>
 <body>
+
+<div class="container">
+    <h1>امتحان الكيمياء العضوية (12 متقدم) - الهيدروكربونات</h1>
+    <p class="sub-title">الاختبار الشامل المكون من 25 سؤالاً متقدماً تحاكي الأنماط الامتحانية الوزارية.</p>
+
+    <div id="quiz"></div>
+    <div id="result-box"></div>
+</div>
+
+<script>
+    const questions = [
+        {
+            q: "ما هو السبب العلمي لارتفاع درجة غليان الماء مقارنة بالميثان رغم تقارب كتلتهما المولية؟",
+            options: ["روابط C-H في الميثان أقوى من روابط الماء", "جزيئات الماء قطبية وتستطيع تكوين روابط هيدروجينية بين جزيئاتها", "الشكل الهندسي للميثان منحني مما يقلل قوى التجاذب", "الميثان يمتلك قوى تشتت لندن قوية جداً تنعكس سلباً"],
+            correct: 1
+        },
+        {
+            q: "أي العبارات التالية تصف 'النيوبنتان' بشكل صحيح مقارنة بـ 'البنتان المستمر'؟",
+            options: ["له درجة غليان أعلى بسبب زيادة مساحة السطح", "له درجة انصهار أعلى بسبب تماثل شكله الكروي الذي يزيد من كفاءة التعبئة في البلورة", "له نشاط كيميائي أكبر بكثير بسبب التفرعات الكثيرة", "يعتبر أيزومر هندسي (Cis-Trans) للبنتان"],
+            correct: 1
+        },
+        {
+            q: "ما هو الاسم النظامي الصحيح (IUPAC) لمركب يحتوي على مجموعة إيثيل عند الكربون رقم 1 ومجموعتي ميثيل عند الكربون 2 و 4 مرتبطة بحلقة بنزين؟",
+            options: ["1-إيثيل-2،4-ثنائي ميثيل بنزين", "2،4-ثنائي ميثيل-1-إيثيل بنزين", "4-إيثيل-1،3-ثنائي ميثيل بنزين", "2-إيثيل-1،4-ثنائي ميثيل بنزين"],
+            correct: 0
+        },
+        {
+            q: "لماذا لا تظهر الألكانات المفتوحة أيزومرات هندسية (cis-trans)؟",
+            options: ["لأنها مركبات غير مشبعة تحتوي على روابط ثنائية", "بسبب حرية الدوران الكاملة حول الرابطة التساهمية الأحادية (سيجما)", "لأنها مركبات أروماتية مستقرة بالرنين", "بسبب نوع التهجين من النوع sp2 في ذرات الكربون"],
+            correct: 1
+        },
+        {
+            q: "ما الهدف الأساسي من عملية 'التكسير الحراري' في مصافي النفط؟",
+            options: ["تحويل الجزيئات الصغيرة والغازية إلى جزيئات ضخمة وسائلة", "تحويل الهيدروكربونات ذات السلاسل الطويلة إلى جزيئات أصغر وأكثر طلباً كالجازولين", "فصل الأملاح والشوائب العالقة بالنفط الخام قبل التقطير", "تحويل الألكانات إلى مركبات أروماتية لزيادة جودتها"],
+            correct: 1
+        },
+        {
+            q: "ما الذي يفسر الاستقرار والثبات الكيميائي العالي جداً لحلقة البنزين وعدم تفاعلها بالإضافة بسهولة؟",
+            options: ["وجود ثلاث روابط ثنائية ثابتة ومحددة الموقع", "عدم تموضع إلكترونات الرابطة باي (ظاهرة الرنين الديليكالي)", "لأن جميع روابطها مشبعة من النوع سيجما فقط", "بسبب شكلها الهندسي الفراغي غير المستوي"],
+            correct: 1
+        },
+        {
+            q: "أي من الصيغ الجزيئية التالية تمثل 'ألكايناً' يحتوي على 8 ذرات هيدروجين؟",
+            options: ["C5H8", "C6H8", "C4H8", "C8H8"],
+            correct: 0
+        },
+        {
+            q: "عند إضافة ماء البروم الأحمر (المذاب في CCl4) إلى الهكسين في غرفة مظلمة، ماذا يحدث؟",
+            options: ["يبقى اللون أحمر كما هو دون تغيير", "يتغير اللون إلى الأزرق الداكن", "يختفي اللون الأحمر فوراً بسبب حدوث تفاعل إضافة", "يتصاعد غاز الهيدروجين ويتكون راسب برومي أبيض"],
+            correct: 2
+        },
+        {
+            q: "ما نوع التهجين في ذرتي الكربون المرتبطتين بالرابطة الثلاثية في جزيء الإيثاين (الأسيتيلين)؟",
+            options: ["sp3", "sp2", "sp", "sp3d"],
+            correct: 2
+        },
+        {
+            q: "ما هي الصيغة العامة للألكانات الحلقية (Cycloalkanes)؟",
+            options: ["C2n2n", "CnH2n+2", "CnH2n", "CnH2n-2"],
+            correct: 2
+        },
+        {
+            q: "أي المركبات التالية يعتبر أيزومراً بنائياً للمركب (2-ميثيل بوتان)؟",
+            options: ["البنتان المستمر", "الهكسان الحلقي", "2،2-ثنائي ميثيل بروبان", "الإجابتان (أ) و (ج) صحيحتان"],
+            correct: 3
+        },
+        {
+            q: "أي الهيدروكربونات التالية يمتلك أعلى درجة غليان؟",
+            options: ["الميثان", "الإيثان", "البروبان", "البيوتان"],
+            correct: 3
+        },
+        {
+            q: "ما هي التسمية الصحيحة لمركب CH3-CH=CH-CH3 الذي تقع فيه مجموعتا الميثيل في اتجاهين متعاكسين من الرابطة الثنائية؟",
+            options: ["سيس-2-بيوتين (cis)", "ترانس-2-بيوتين (trans)", "1-بيوتين", "ترانس-1-بيوتين"],
+            correct: 1
+        },
+        {
+            q: "تتكون الرابطة التساهمية الثنائية في الألكينات من:",
+            options: ["رابطتين من النوع سيجما (σ)", "رابطتين من النوع باي (π)", "رابطة واحدة سيجما (σ) ورابطة واحدة باي (π)", "ثلاث روابط سيجما ورابطة باي واحدة"],
+            correct: 2
+        },
+        {
+            q: "أي مما يلي يعد من الخصائص الفيزيائية النموذجية للألكانات؟",
+            options: ["تذوب بشكل ممتاز في الماء", "أقل كثافة من الماء ولا تذوب فيه (غير قطبية)", "لها درجات غليان مرتفعة جداً مقارنة بالكحول", "توصل التيار الكهربائي بكفاءة عالية"],
+            correct: 1
+        },
+        {
+            q: "الاسم الشائع للمركب الأروماتي (ميثيل بنزين) هو:",
+            options: ["الأنيلين", "الفينول", "التولوين", "الإنثرادين"],
+            correct: 2
+        },
+        {
+            q: "وفقاً لقاعدة ماركوفنيكوف، عند إضافة بروميد الهيدروجين (HBr) إلى البروبين، فإن ذرة الهيدروجين ترتبط بـ:",
+            options: ["ذرة كربون الرابطة الثنائية المرتبطة بأكبر عدد من ذرات الهيدروجين", "ذرة كربون الرابطة الثنائية المرتبطة بأقل عدد من ذرات الهيدروجين", "أي ذرة كربون في الجزيء عشوائياً", "ذرة الكربون الطرفية المشبعة فقط"],
+            correct: 0
+        },
+        {
+            q: "كم عدد روابط سيجما (σ) وروابط باي (π) في جزيء البنزين (C6H6) على التوالي؟",
+            options: ["12 سيجما و 3 باي", "6 سيجما و 6 باي", "9 سيجما و 3 باي", "15 سيجما و لا يوجد باي"],
+            correct: 0
+        },
+        {
+            q: "أي الألكانات الحلقية التالية يعاني من أعلى مقدار من 'إجهاد الحلقة' (Ring Strain) ويجعله الأكثر نشاطاً كيميائياً؟",
+            options: ["الهكسان الحلقي", "البنتان الحلقي", "البيوتان الحلقي", "البروبان الحلقي"],
+            correct: 3
+        },
+        {
+            q: "المادة الكيميائية الرئيسية المستخدمة في إنتاج مشاعل اللحام ذات الحرارة العالية جداً (الأكسي-أسيتيلين) هي:",
+            options: ["الميثان", "الإيثين", "الإيثاين", "البروبان"],
+            correct: 2
+        },
+        {
+            q: "ما اسم التفاعل الكيميائي الذي يتم فيه تحويل الزيوت السائلة غير المشبعة إلى دهون صلبة مشبعة؟",
+            options: ["الهلجنة", "الهدرجة", "الاماهة (إضافة الماء)", "التبلمر"],
+            correct: 1
+        },
+        {
+            q: "عند احتراق الألكانات احتراقاً تاماً في وفرة من الأكسجين، فإن النواتج الأساسية هي:",
+            options: ["CO + H2", "CO2 + H2O", "C + H2O", "CO2 + H2"],
+            correct: 1
+        },
+        {
+            q: "ما هو الألكين المستمر الذي يحتوي على 5 ذرات كربون وتوجد الرابطة الثنائية فيه بين ذرتي الكربون الأولى والثانية؟",
+            options: ["1-بنتين", "2-بنتين", "سيكلوبنتين", "1-هكسين"],
+            correct: 0
+        },
+        {
+            q: "أي من العبارات التالية غير صحيحة عن المجموعات البديلة المعروفة بـ (مجموعات الألكيل)؟",
+            options: ["تشتق من الألكان المقابل بعد نزع ذرة هيدروجين واحدة", "صيغتها العامة CnH2n+1", "توجد منفردة في الطبيعة كمركبات مستقرة", "من أمثلتها الميثيل والإيثيل"],
+            correct: 2
+        },
+        {
+            q: "ما اسم المركب الأروماتي الذي يتكون من التحام حلقتي بنزين معاً؟",
+            options: ["البروبان الحلقي", "الأنثراسين", "النفتالين", "التولوين"],
+            correct: 1
+        }
+    ];
+
+    const quizContainer = document.getElementById('quiz');
+    const resultBox = document.getElementById('result-box');
+    let score = 0;
+    let answeredQuestions = 0;
+
+    questions.forEach((item, index) => {
+        const qDiv = document.createElement('div');
+        qDiv.className = 'question';
+        qDiv.innerHTML = `<span class="question-title"><strong>س${index + 1}:</strong> ${item.q}</span>`;
+        
+        const optionsUl = document.createElement('ul');
+        optionsUl.className = 'options';
+        
+        item.options.forEach((opt, optIndex) => {
+            const li = document.createElement('li');
+            li.innerText = opt;
+            li.onclick = function() {
+                answeredQuestions++;
+                const allSiblings = optionsUl.querySelectorAll('li');
+                
+                if(optIndex === item.correct) {
+                    li.className = 'correct';
+                    li.innerText += " ✓ (إجابة صحيحة)";
+                    score++;
+                } else {
+                    li.className = 'wrong';
+                    li.innerText += " ✗ (إجابتك خاطئة)";
+                    // إظهار الإجابة الصحيحة للطالب ليتعلم منها
+                    allSiblings[item.correct].className = 'missed';
+                    allSiblings[item.correct].innerText += " (هذه هي الإجابة الصحيحة)";
+                }
+                
+                // تعطيل الضغط على بقية الخيارات بعد الإجابة
+                allSiblings.forEach(s => s.onclick = null);
+
+                // إظهار النتيجة النهائية إذا أجاب على كل الأسئلة
+                if(answeredQuestions === questions.length) {
+                    showFinalResult();
+                }
+            };
+            optionsUl.appendChild(li);
+        });
+        
+        qDiv.appendChild(optionsUl);
+        quizContainer.appendChild(qDiv);
+    });
+
+    function showFinalResult() {
+        resultBox.style.display = 'block';
+        const percentage = ((score / questions.length) * 100).toFixed(1);
+        resultBox.innerHTML = `لقد أتممت الاختبار بنجاح!<br> درجتك هي: <span style="color:#2980b9">${score} من ${questions.length}</span> (${percentage}%)`;
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
