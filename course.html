@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>calling1plan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- تنسيقات عامة --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            min-height: 100vh;
+            /* تم إزالة overflow: hidden لكي تتمكن من التمرير لأسفل ورؤية البطاقة */
+            background: linear-gradient(135deg, #E0F2FE 0%, #F8FAFC 100%) no-repeat fixed;
+            font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* --- قسم الهيدر (Learn Now) --- */
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .image-section {
+            flex: 1;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        .image-section img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .text-section {
+            flex: 2;
+            background-color: #b3e5fc;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .text-en {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 20px;
+            direction: ltr;
+            font-family: 'Segoe UI', sans-serif; /* الحفاظ على الفونت الإنجليزي */
+        }
+
+        .text-ar {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        /* --- تنسيق قسم البطاقة (Card Section) --- */
+        .card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px 20px; /* مساحة حول البطاقة */
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 0.75rem;
+            background-color: white;
+            width: 300px;
+            height: 370px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1);
+        }
+
+        .header {
+            position: relative;
+            background-clip: border-box;
+            margin-top: 1.5rem;
+            margin-left: 1rem;
+            margin-right: 1rem;
+            border-radius: 0.75rem;
+            background-color: rgb(33 150 243);
+            box-shadow: 0 10px 15px -3px rgba(33,150,243,.4), 0 4px 6px -4px rgba(33,150,243,.4);
+            height: 14rem;
+        }
+
+        .info {
+            border: none;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .title {
+            color: rgb(38 50 56);
+            letter-spacing: 0;
+            line-height: 1.375;
+            font-weight: 600;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer {
+            padding: 0.75rem;
+            border: 1px solid rgb(236 239 241);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0, 140, 255, 0.082);
+            direction: ltr; /* لضمان تنسيق العناصر بالأسفل بشكل سليم */
+        }
+
+        .tag {
+            font-weight: 300;
+            font-size: .75rem;
+            display: block;
+        }
+
+        .action {
+            user-select: none;
+            border: none;
+            outline: none;
+            box-shadow: 0 4px 6px -1px rgba(33,150,243,.4), 0 2px 4px -2px rgba(33,150,243,.4);
+            background-color: rgb(33 150 243);
+            border-radius: 0.5rem;
+            padding: 0; /* تم تصفيره ليعتمد على حشو الرابط بالأسفل */
+        }
+
+        .action a {
+            display: block;
+            color: rgb(255 255 255);
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: .75rem;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none; /* إزالة الخط الافتراضي تحت الرابط */
+        }
+
+        /* --- التجاوب مع الهواتف --- */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column-reverse;
+                height: auto; /* ترك المساحة مرنة في الموبايل */
+            }
+            .text-section {
+                padding: 40px 20px;
+            }
+            .image-section img {
+                max-height: 300px;
+            }
+            .text-en { font-size: 3rem; }
+            .text-ar { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="image-section">
+            <img src="https://i.postimg.cc/k57qXt4d/Screenshot-2026-06-27-111129.png" alt="شخص يحمل لابتوب">
+        </div>
+
+        <div class="text-section">
+            <div class="text-en">Learn now</div>
+            <div class="text-ar">تعلم الآن</div>
+        </div>
+    </div>
+
+    <div class="card-container">
+        <div class="card">
+            <div class="header"></div>
+            <div class="info">
+                <p class="title">تعلم اساسيات html&css  هاتف ايفون</p>
+                <p class="title">Learn the basics of HTML and css iphone</p>
+				<p> عند تعلم كل ما في هذه الدوره ستكون متقن لاساسيات الhtml.</p>
+				<p>By the time you learn everything in this course, you'll be good at the basics of HTML.</p>
+            </div>
+            <div class="footer">
+                <p class="tag">#HTML #phone #19 m </p>
+                <button type="button" class="action">
+                    <a href="#">Get started</a>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+</body>
+</html>
