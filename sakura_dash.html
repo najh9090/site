@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>ساكورا داش - Sakura Dash</title>
+<style>
+  :root{
+    --sky-top:#FF9FC0;
+    --sky-bottom:#8E7CFF;
+    --night:#231942;
+    --sakura:#FFC4DD;
+    --sakura-dark:#FF8FB8;
+    --gold:#FFD23F;
+    --leaf:#5FB57A;
+    --leaf-dark:#3E8C5A;
+    --ink:#231942;
+    --panel:#fff7fb;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;min-height:100%;
+    background:linear-gradient(180deg,#1a1030,#3a2a5c);
+    font-family:'Segoe UI', Tahoma, sans-serif;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    user-select:none;
+    padding:20px 0;
+  }
+  h1.pageTitle{
+    color:#fff;
+    font-size:30px;
+    margin:0 0 14px 0;
+    letter-spacing:0.5px;
+    background:linear-gradient(90deg,var(--sakura),var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  #appWindow{
+    width:960px;max-width:96vw;
+    background:var(--panel);
+    border-radius:18px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+    overflow:hidden;
+  }
+  #gameWrap{position:relative;}
+  canvas{display:block;background:linear-gradient(180deg,var(--sky-top),var(--sky-bottom));width:100%;height:auto;}
+  #hud{
+    position:absolute;top:10px;left:10px;right:10px;
+    display:flex;justify-content:space-between;
+    font-weight:800;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.4);
+    font-size:18px;pointer-events:none;
+  }
+  #hud .pill{
+    background:rgba(35,25,66,0.55);
+    padding:6px 14px;border-radius:20px;
+    backdrop-filter:blur(2px);
+  }
+  #overlay{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(35,25,66,0.78);
+    color:#fff;text-align:center;gap:14px;
+  }
+  #overlay h1{
+    font-size:42px;margin:0;
+    background:linear-gradient(90deg,var(--sakura),var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  #overlay p{margin:0;font-size:15px;opacity:0.9;max-width:480px;line-height:1.6;}
+  #overlay button{
+    margin-top:8px;
+    padding:12px 32px;font-size:17px;font-weight:800;
+    border:none;border-radius:30px;cursor:pointer;
+    background:linear-gradient(90deg,var(--sakura-dark),var(--gold));
+    color:#231942;
+    box-shadow:0 8px 18px rgba(255,140,180,0.4);
+    transition:transform .15s ease;
+  }
+  #overlay button:hover{transform:translateY(-2px) scale(1.03);}
+  .hidden{display:none !important;}
+  #footer{
+    background:var(--night);color:#caa8ff;
+    font-size:12px;text-align:center;padding:8px;
+    letter-spacing:0.3px;
+  }
+</style>
+</head>
+<body>
+<h1 class="pageTitle">🌸 ساكورا داش — Sakura Dash</h1>
+<div id="appWindow">
+  <div id="gameWrap">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div id="hud">
+      <div class="pill" id="livesPill">❤️ x3</div>
+      <div class="pill" id="levelPill">المرحلة 1</div>
+      <div class="pill" id="scorePill">🌸 0</div>
+    </div>
+    <div id="overlay">
+      <h1>جاهز نبدأ؟</h1>
+      <p>تحكم بالنينجا الصغيرة عبر المنصات، اجمع بتلات الساكورا، تجنب الأعداء، وصل إلى بوابة التوريي لإنهاء كل مرحلة.<br>
+      الأسهم / A D للحركة — مسافة أو السهم لأعلى للقفز — اضغط القفز مرتين للقفزة المزدوجة.</p>
+      <button id="startBtn">🌸 ابدأ اللعب</button>
+    </div>
+  </div>
+  <div id="footer">المرحلة 1 من 2 — اجمع البتلات وصل إلى البوابة 🌸</div>
+</div>
+
+<script>
+(function(){
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+const livesPill = document.getElementById('livesPill');
+const levelPill = document.getElementById('levelPill');
+const scorePill = document.getElementById('scorePill');
+
+const GRAVITY = 0.62;
+const JUMP_V = -13.5;
+const MOVE_SPEED = 4.3;
+const FRICTION = 0.82;
+
+let keys = {};
+window.addEventListener('keydown', e=>{
+  keys[e.code]=true;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+});
+window.addEventListener('keyup', e=> keys[e.code]=false);
+
+// ---------- Level data ----------
+// platforms: x,y,w,h
+// coins: x,y
+// enemies: x,y,range
+// goal: x,y
+function buildLevels(){
+  return [
+    {
+      bg:'day',
+      width:2600,
+      platforms:[
+        {x:0,y:480,w:700,h:60},
+        {x:760,y:480,w:260,h:60},
+        {x:1100,y:420,w:180,h:30},
+        {x:1340,y:360,w:160,h:30},
+        {x:1100,y:300,w:140,h:24},
+        {x:1560,y:480,w:420,h:60},
+        {x:2060,y:420,w:160,h:30},
+        {x:2280,y:480,w:320,h:60},
+      ],
+      coins:[
+        {x:300,y:420},{x:400,y:420},{x:500,y:420},
+        {x:820,y:420},{x:900,y:420},
+        {x:1150,y:360},{x:1390,y:300},{x:1140,y:250},
+        {x:1650,y:420},{x:1750,y:420},{x:1850,y:420},{x:1950,y:420},
+        {x:2100,y:360},
+        {x:2350,y:420},{x:2450,y:420}
+      ],
+      enemies:[
+        {x:780,y:448,range:[760,1000],dir:1,speed:1.4},
+        {x:1600,y:448,range:[1560,1950],dir:1,speed:1.6},
+        {x:2300,y:448,range:[2280,2560],dir:1,speed:1.5},
+      ],
+      goal:{x:2520,y:400}
+    },
+    {
+      bg:'sunset',
+      width:3000,
+      platforms:[
+        {x:0,y:480,w:500,h:60},
+        {x:600,y:420,w:160,h:24},
+        {x:840,y:360,w:160,h:24},
+        {x:1080,y:300,w:160,h:24},
+        {x:1080,y:480,w:0,h:0}, // filler removed below
+        {x:1340,y:480,w:300,h:60},
+        {x:1740,y:420,w:140,h:24},
+        {x:1980,y:480,w:200,h:60},
+        {x:2280,y:420,w:140,h:24},
+        {x:2500,y:360,w:140,h:24},
+        {x:2720,y:480,w:280,h:60},
+      ],
+      coins:[
+        {x:250,y:420},{x:350,y:420},
+        {x:660,y:360},{x:900,y:300},{x:1140,y:240},
+        {x:1400,y:420},{x:1500,y:420},{x:1600,y:420},
+        {x:1790,y:360},
+        {x:2030,y:420},{x:2120,y:420},
+        {x:2330,y:360},{x:2550,y:300},
+        {x:2780,y:420},{x:2880,y:420}
+      ],
+      enemies:[
+        {x:1360,y:448,range:[1340,1600],dir:1,speed:1.7},
+        {x:2000,y:448,range:[1980,2150],dir:1,speed:1.5},
+        {x:2740,y:448,range:[2720,2960],dir:1,speed:1.8},
+      ],
+      goal:{x:2940,y:400}
+    }
+  ];
+}
+let LEVELS = buildLevels();
+// remove the zero filler platform
+LEVELS[1].platforms = LEVELS[1].platforms.filter(p=>p.w>0);
+
+let levelIndex = 0;
+let level = LEVELS[0];
+
+let camX = 0;
+let score = 0;
+let lives = 3;
+let running = false;
+let particles = []; // sakura petals
+let stars = [];
+
+function resetPlayer(){
+  return {
+    x:60,y:380,w:34,h:42,
+    vx:0,vy:0,
+    onGround:false,
+    jumps:0,
+    facing:1,
+    invuln:0,
+    anim:0
+  };
+}
+let player = resetPlayer();
+
+function loadLevel(i){
+  levelIndex = i;
+  level = LEVELS[i];
+  player = resetPlayer();
+  camX = 0;
+  level.coinsState = level.coins.map(c=>({...c,taken:false}));
+  level.enemyState = level.enemies.map(e=>({...e,x:e.x}));
+  levelPill.textContent = 'المرحلة ' + (i+1);
+}
+loadLevel(0);
+
+// background sakura petals
+for(let i=0;i<26;i++){
+  particles.push({
+    x:Math.random()*W, y:Math.random()*H,
+    s:6+Math.random()*8,
+    speed:0.4+Math.random()*0.8,
+    sway:Math.random()*Math.PI*2,
+    swaySpeed:0.01+Math.random()*0.02
+  });
+}
+for(let i=0;i<60;i++){
+  stars.push({x:Math.random()*W,y:Math.random()*H*0.5,s:Math.random()*2+0.5});
+}
+
+function rectsOverlap(a,b){
+  return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+}
+
+function update(){
+  if(!running) return;
+
+  // input
+  if(keys['ArrowLeft']||keys['KeyA']){ player.vx -= 0.9; player.facing=-1; }
+  if(keys['ArrowRight']||keys['KeyD']){ player.vx += 0.9; player.facing=1; }
+  player.vx = Math.max(-MOVE_SPEED, Math.min(MOVE_SPEED, player.vx));
+  player.vx *= FRICTION;
+
+  const jumpPressed = keys['Space']||keys['ArrowUp']||keys['KeyW'];
+  if(jumpPressed && !player.jumpHeld){
+    if(player.onGround || player.jumps < 2){
+      player.vy = JUMP_V;
+      player.jumps++;
+      player.onGround=false;
+    }
+  }
+  player.jumpHeld = jumpPressed;
+
+  player.vy += GRAVITY;
+  if(player.vy>16) player.vy=16;
+
+  player.x += player.vx;
+  player.y += player.vy;
+
+  // platform collisions
+  player.onGround=false;
+  for(const p of level.platforms){
+    if(rectsOverlap(player,p)){
+      // landing from top
+      const prevBottom = player.y - player.vy + player.h;
+      if(player.vy>=0 && prevBottom <= p.y+1){
+        player.y = p.y - player.h;
+        player.vy = 0;
+        player.onGround = true;
+        player.jumps = 0;
+      } else if(player.vy<0 && player.y - player.vy >= p.y+p.h-1){
+        player.y = p.y+p.h;
+        player.vy = 0;
+      } else {
+        // side collision
+        if(player.vx>0) player.x = p.x - player.w;
+        else if(player.vx<0) player.x = p.x + p.w;
+        player.vx = 0;
+      }
+    }
+  }
+
+  // bounds
+  if(player.x<0) player.x=0;
+  if(player.x > level.width - player.w) player.x = level.width - player.w;
+
+  // fell off
+  if(player.y > H+100){
+    loseLife();
+  }
+
+  // coins
+  for(const c of level.coinsState){
+    if(!c.taken){
+      const cb = {x:c.x-10,y:c.y-10,w:20,h:20};
+      const pb = {x:player.x,y:player.y,w:player.w,h:player.h};
+      if(rectsOverlap(cb,pb)){
+        c.taken=true;
+        score += 10;
+        scorePill.textContent = '🌸 ' + score;
+      }
+    }
+  }
+
+  // enemies
+  for(const e of level.enemyState){
+    e.x += e.dir*e.speed;
+    if(e.x < e.range[0]) e.dir=1;
+    if(e.x > e.range[1]-30) e.dir=-1;
+    const eb = {x:e.x,y:e.y-26,w:28,h:26};
+    const pb = {x:player.x,y:player.y,w:player.w,h:player.h};
+    if(player.invuln<=0 && rectsOverlap(eb,pb)){
+      // stomp check
+      if(player.vy>2 && (player.y+player.h) - eb.y < 16){
+        e.dead = true;
+        player.vy = JUMP_V*0.6;
+        score += 25;
+        scorePill.textContent = '🌸 ' + score;
+      } else {
+        loseLife();
+      }
+    }
+  }
+  level.enemyState = level.enemyState.filter(e=>!e.dead);
+
+  if(player.invuln>0) player.invuln--;
+
+  // goal
+  const gb = {x:level.goal.x,y:level.goal.y-80,w:50,h:80};
+  const pb2 = {x:player.x,y:player.y,w:player.w,h:player.h};
+  if(rectsOverlap(gb,pb2)){
+    nextLevel();
+  }
+
+  // camera
+  camX = player.x - W/2 + player.w/2;
+  camX = Math.max(0, Math.min(camX, level.width - W));
+
+  player.anim += Math.abs(player.vx)*0.3 + 0.15;
+
+  // particles
+  for(const pt of particles){
+    pt.sway += pt.swaySpeed;
+    pt.y += pt.speed;
+    pt.x += Math.sin(pt.sway)*0.6;
+    if(pt.y>H){ pt.y=-10; pt.x=Math.random()*W; }
+  }
+}
+
+function loseLife(){
+  lives--;
+  livesPill.textContent = '❤️ x'+Math.max(lives,0);
+  player = resetPlayer();
+  camX = 0;
+  if(lives<=0){
+    gameOver(false);
+  }
+}
+
+function nextLevel(){
+  if(levelIndex < LEVELS.length-1){
+    loadLevel(levelIndex+1);
+  } else {
+    gameOver(true);
+  }
+}
+
+function gameOver(won){
+  running = false;
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <h1>${won ? '🎉 فزتِ! انتهت الرحلة' : '💥 انتهت المحاولة'}</h1>
+    <p>${won ? 'وصلت إلى نهاية كل المراحل بنقاط: ' + score : 'نقاطك: ' + score + ' — حاول مرة أخرى!'}</p>
+    <button id="startBtn">العب مجددًا ▶</button>
+  `;
+  document.getElementById('startBtn').addEventListener('click', startGame);
+}
+
+function startGame(){
+  score = 0; lives = 3;
+  scorePill.textContent = '🌸 0';
+  livesPill.textContent = '❤️ x3';
+  loadLevel(0);
+  overlay.classList.add('hidden');
+  running = true;
+}
+startBtn.addEventListener('click', startGame);
+
+// ---------- Drawing ----------
+function drawBackground(){
+  // sky gradient already from CSS; add sun/moon + hills
+  ctx.save();
+  // distant hills (parallax)
+  const hillOffset = camX*0.2;
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  for(let i=-1;i<6;i++){
+    const hx = i*300 - (hillOffset%300);
+    ctx.beginPath();
+    ctx.ellipse(hx+150, H-40, 220, 90, 0, Math.PI, 2*Math.PI);
+    ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  const hillOffset2 = camX*0.4;
+  for(let i=-1;i<6;i++){
+    const hx = i*260 - (hillOffset2%260);
+    ctx.beginPath();
+    ctx.ellipse(hx+130, H-20, 180, 70, 0, Math.PI, 2*Math.PI);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // stars/sparkles
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  for(const s of stars){
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.s,0,7);
+    ctx.fill();
+  }
+
+  // sun
+  ctx.beginPath();
+  ctx.fillStyle = '#FFE8A3';
+  ctx.arc(W-120,90,46,0,7);
+  ctx.fill();
+
+  // falling sakura petals
+  for(const pt of particles){
+    ctx.save();
+    ctx.translate(pt.x,pt.y);
+    ctx.rotate(pt.sway);
+    ctx.fillStyle = '#FFC4DD';
+    ctx.beginPath();
+    ctx.ellipse(0,0,pt.s*0.6,pt.s*0.35,0,0,7);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawPlatform(p){
+  const x = p.x - camX;
+  if(x+p.w<0 || x>W) return;
+  // grass top
+  ctx.fillStyle = '#3E8C5A';
+  ctx.fillRect(x,p.y,p.w,p.h);
+  ctx.fillStyle = '#5FB57A';
+  ctx.fillRect(x,p.y,p.w,10);
+  // little flower decorations
+  ctx.fillStyle='#FFD23F';
+  for(let i=14;i<p.w-10;i+=46){
+    ctx.beginPath();
+    ctx.arc(x+i, p.y+5, 3,0,7);
+    ctx.fill();
+  }
+}
+
+function drawCoin(c){
+  if(c.taken) return;
+  const x = c.x-camX, y=c.y;
+  if(x<-20||x>W+20) return;
+  ctx.save();
+  ctx.translate(x,y);
+  const t = performance.now()/300;
+  const scaleX = Math.abs(Math.cos(t));
+  ctx.scale(Math.max(0.15,scaleX),1);
+  ctx.fillStyle='#FFC4DD';
+  ctx.beginPath();
+  ctx.ellipse(0,0,11,9,0,0,7);
+  ctx.fill();
+  ctx.fillStyle='#FF8FB8';
+  ctx.beginPath();
+  ctx.ellipse(0,0,5,4,0,0,7);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawEnemy(e){
+  const x = e.x-camX, y=e.y;
+  if(x<-40||x>W+40) return;
+  ctx.save();
+  ctx.translate(x,y);
+  // slime body
+  ctx.fillStyle='#C77DFF';
+  ctx.beginPath();
+  ctx.ellipse(0,-12,16,14,0,0,7);
+  ctx.fill();
+  // eyes
+  ctx.fillStyle='#231942';
+  ctx.beginPath();
+  ctx.arc(-5,-14,2.4,0,7);
+  ctx.arc(5,-14,2.4,0,7);
+  ctx.fill();
+  // angry brows
+  ctx.strokeStyle='#231942'; ctx.lineWidth=1.6;
+  ctx.beginPath();
+  ctx.moveTo(-9,-19); ctx.lineTo(-2,-17);
+  ctx.moveTo(9,-19); ctx.lineTo(2,-17);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawGoal(){
+  const x = level.goal.x - camX, y = level.goal.y;
+  // torii gate
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.fillStyle='#E8473F';
+  ctx.fillRect(-6,-80,12,80);
+  ctx.fillRect(34,-80,12,80);
+  ctx.fillRect(-16,-90,78,14);
+  ctx.fillRect(-8,-72,62,10);
+  ctx.fillStyle='#231942';
+  ctx.fillRect(-16,-78,78,4);
+  ctx.restore();
+}
+
+function drawPlayer(){
+  const x = player.x - camX, y = player.y;
+  ctx.save();
+  ctx.translate(x+player.w/2, y+player.h/2);
+  ctx.scale(player.facing,1);
+
+  const bob = player.onGround ? Math.sin(player.anim)*2 : 0;
+  ctx.translate(0,bob);
+
+  const legSwing = player.onGround && Math.abs(player.vx)>0.5 ? Math.sin(player.anim*1.6)*5 : 0;
+
+  // back twin-tail (drawn behind head)
+  ctx.fillStyle='#9B7BE8';
+  ctx.beginPath();
+  ctx.ellipse(-11,-12,4.5,10,-0.3,0,7);
+  ctx.fill();
+
+  // legs (short, rounded chibi boots)
+  ctx.fillStyle='#5B3FA0';
+  ctx.beginPath();
+  ctx.ellipse(-5,19+legSwing*0.2,4.5,6,0,0,7);
+  ctx.ellipse(5,19-legSwing*0.2,4.5,6,0,0,7);
+  ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.ellipse(-5,23+legSwing*0.2,4.5,2.6,0,0,7);
+  ctx.ellipse(5,23-legSwing*0.2,4.5,2.6,0,0,7);
+  ctx.fill();
+
+  // dress body (bell-shaped, cute)
+  ctx.fillStyle='#C9A6FF';
+  ctx.beginPath();
+  ctx.moveTo(-7,-2);
+  ctx.quadraticCurveTo(-13,12,-12,18);
+  ctx.quadraticCurveTo(0,22,12,18);
+  ctx.quadraticCurveTo(13,12,7,-2);
+  ctx.closePath();
+  ctx.fill();
+  // dress shading stripe
+  ctx.fillStyle='#B98CF0';
+  ctx.beginPath();
+  ctx.moveTo(-12,18);
+  ctx.quadraticCurveTo(0,23,12,18);
+  ctx.quadraticCurveTo(0,21,-12,18);
+  ctx.closePath();
+  ctx.fill();
+
+  // sleeves
+  ctx.fillStyle='#FFE3C2';
+  ctx.beginPath();
+  ctx.ellipse(-10,2,3.6,5,0.4,0,7);
+  ctx.ellipse(10,2,3.6,5,-0.4,0,7);
+  ctx.fill();
+
+  // chest bow
+  ctx.fillStyle='#FF6FA5';
+  ctx.beginPath();
+  ctx.moveTo(0,-1);
+  ctx.lineTo(-5,-4);
+  ctx.lineTo(-4,1);
+  ctx.closePath();
+  ctx.moveTo(0,-1);
+  ctx.lineTo(5,-4);
+  ctx.lineTo(4,1);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle='#FFD23F';
+  ctx.beginPath();
+  ctx.arc(0,-1,1.8,0,7);
+  ctx.fill();
+
+  // ---- head (big, chibi proportions) ----
+  const headR = 14.5;
+  const headY = -19;
+
+  // front twin-tail
+  ctx.fillStyle='#9B7BE8';
+  ctx.beginPath();
+  ctx.ellipse(11,-14,5,11,0.35,0,7);
+  ctx.fill();
+  ctx.fillStyle='#FF6FA5';
+  ctx.beginPath();
+  ctx.ellipse(8,-21,2.6,1.8,0.6,0,7);
+  ctx.fill();
+
+  // face
+  ctx.fillStyle='#FFEAD2';
+  ctx.beginPath();
+  ctx.arc(0,headY,headR,0,7);
+  ctx.fill();
+
+  // hair top (soft rounded anime bangs)
+  ctx.fillStyle='#7B5BD1';
+  ctx.beginPath();
+  ctx.moveTo(-headR,headY);
+  ctx.quadraticCurveTo(-headR-2,headY-16,0,headY-17);
+  ctx.quadraticCurveTo(headR+2,headY-16,headR,headY);
+  ctx.quadraticCurveTo(headR-3,headY-7,headR-7,headY-9);
+  ctx.quadraticCurveTo(headR-10,headY-3,headR-13,headY-8);
+  ctx.quadraticCurveTo(0,headY-12,-(headR-13),headY-8);
+  ctx.quadraticCurveTo(-(headR-10),headY-3,-(headR-7),headY-9);
+  ctx.quadraticCurveTo(-(headR-3),headY-7,-headR,headY);
+  ctx.closePath();
+  ctx.fill();
+
+  // hair shine
+  ctx.fillStyle='#9B7BE8';
+  ctx.beginPath();
+  ctx.ellipse(-5,headY-12,4,2.2,-0.4,0,7);
+  ctx.fill();
+
+  // headband
+  ctx.fillStyle='#FF6FA5';
+  ctx.beginPath();
+  ctx.ellipse(0,headY-4,headR-1,3.2,0,0,7);
+  ctx.fill();
+  ctx.fillStyle='#FFD23F';
+  ctx.beginPath();
+  ctx.arc(0,headY-4,2.4,0,7);
+  ctx.fill();
+
+  // ears blush
+  ctx.fillStyle='rgba(255,130,170,0.55)';
+  ctx.beginPath();
+  ctx.ellipse(-8,headY+4,2.6,1.8,0,0,7);
+  ctx.ellipse(7,headY+4,2.6,1.8,0,0,7);
+  ctx.fill();
+
+  // big sparkly anime eyes
+  function eye(ex){
+    ctx.fillStyle='#231942';
+    ctx.beginPath();
+    ctx.ellipse(ex,headY+2,3.1,4.2,0,0,7);
+    ctx.fill();
+    ctx.fillStyle='#A685FF';
+    ctx.beginPath();
+    ctx.ellipse(ex,headY+3,1.7,2.4,0,0,7);
+    ctx.fill();
+    ctx.fillStyle='#fff';
+    ctx.beginPath();
+    ctx.arc(ex+1,headY+0.6,1.1,0,7);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ex-0.6,headY+3.4,0.6,0,7);
+    ctx.fill();
+  }
+  eye(-5.5);
+  eye(5.5);
+
+  // eyebrows (soft, friendly)
+  ctx.strokeStyle='#5B3FA0'; ctx.lineWidth=1.1; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(-8,headY-4); ctx.quadraticCurveTo(-5.5,headY-6,-3,headY-4.2);
+  ctx.moveTo(8,headY-4); ctx.quadraticCurveTo(5.5,headY-6,3,headY-4.2);
+  ctx.stroke();
+
+  // cute smile
+  ctx.strokeStyle='#D9627D'; ctx.lineWidth=1.2; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.arc(0,headY+6,2.6,0.25,Math.PI-0.25);
+  ctx.stroke();
+
+  // cheek blush
+  ctx.fillStyle='rgba(255,140,180,0.55)';
+  ctx.beginPath();
+  ctx.ellipse(-9,headY+8,2.3,1.5,0,0,7);
+  ctx.ellipse(9,headY+8,2.3,1.5,0,0,7);
+  ctx.fill();
+
+  ctx.restore();
+
+  // invuln flicker
+  if(player.invuln>0 && Math.floor(player.invuln/4)%2===0){
+    // simple skip-draw flicker handled by overlay alpha (kept simple)
+  }
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  drawBackground();
+  for(const p of level.platforms) drawPlatform(p);
+  drawGoal();
+  for(const c of level.coinsState) drawCoin(c);
+  for(const e of level.enemyState) drawEnemy(e);
+  drawPlayer();
+}
+
+function loop(){
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+})();
+</script>
+</body>
+</html>
